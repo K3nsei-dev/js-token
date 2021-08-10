@@ -11,28 +11,35 @@ function getData(url) {
 
 getData(base_URL)
 
-// posting data 
+// authorising user aka login
+let myStorage;
+
 fetch('https://lca-pointofsales.herokuapp.com//auth', {
     method: 'POST',
+    headers: {
+        'Content-Type': 'application/json; charset=UTF-8'
+    },
     body: JSON.stringify({
         "username": "jeandreross@gmail.com",
         "password": "lifechoices1234"
-    }),
-    headers: {
-        'Content-type': 'application/json; charset=UTF-8'
-    },
+    })
 })
   .then(res => res.json())
   .then(res => {
-            console.log(res);
-            myStorage = window.localStorage;
-            console.log(res["access_token"]);
-            myStorage.setItem("jwt-token", res["access_token"]);
+            // console.log(res);
+            let myStorage = window.localStorage;
+            // console.log(res["access_token"]);
+            myStorage.setItem("jwt-token", JSON.stringify(res["access_token"]));
+            return myStorage
    });
 
-  const token = window.localStorage.getItem('jwt-token')
+// posting products
+function postProducts() {
+  const user = JSON.parse(localStorage.getItem('jwt-token'));
+  const myStorage = user;
   fetch('https://lca-pointofsales.herokuapp.com//add-products', {
-    method: 'POST',
+    method: 'post',
+    dataType : 'json',
     body: JSON.stringify({
         "product_name": "dummy",
         "product_type": "dummy",
@@ -40,9 +47,26 @@ fetch('https://lca-pointofsales.herokuapp.com//auth', {
         "product_description": "dummy",
         "product_image": "dummy"
     }),
-  //   const accessToken = localStorage.getItem('jwt-token');
     headers: {
-      'Content-type': 'application/json; charset=UTF-8',
-      'Authorization': `jwt ${token}`
-    }
-})
+      'Authorization': `jwt ${ myStorage }`,
+      'Content-Type': 'application/json; charset=UTF-8'
+    },
+    mode: 'cors',
+    cache: 'default',
+}).then(res => res.json())
+    .then(res => console.log(res))
+}
+
+postProducts()
+
+// getting available products
+function getProducts(){
+    fetch('https://lca-pointofsales.herokuapp.com//view-products',{
+        method: 'get',
+        mode: 'cors',
+        cache: 'default'
+    }).then(res => res.json())
+        .then(res => console.log(res))
+}
+
+getProducts()
